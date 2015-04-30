@@ -1,0 +1,8 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:mycalc="http://schemas.android.com/apk/res-auto">
+<item android:id="@+id/menu_adv_view"
+android:title="Adv View"
+android:orderInCategory="10"
+    mycalc:showAsAction="always"
+    />
+    </menu>
