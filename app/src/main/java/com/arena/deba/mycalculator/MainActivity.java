@@ -8,9 +8,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 
 public class MainActivity extends ActionBarActivity implements View.OnClickListener{
@@ -25,7 +26,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
     private int reqCode = 1;
 
-    private String input1Str="", input2Str="", operationStr = "", input1SignStr = "+", input2SignStr = "+", outputSignStr = "+";
+    private String input1Str="", input2Str="", operationStr = "", input1SignStr = "+", outputSignStr = "+";
     static String advFunc="";
     static String outputStr ="";
     String currentExp="", currentButton="";
@@ -141,8 +142,26 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                 handleDecimalDisplayOutput();
                 setupNextCycle();
             }
-            else
+            else if((advFunc.compareTo("sin") == 0) || (advFunc.compareTo("cos") == 0)|| (advFunc.compareTo("tan") == 0)|| (advFunc.compareTo("ln") == 0)
+                    || (advFunc.compareTo("log") == 0) || (advFunc.compareTo("!") == 0)
+                    || (advFunc.compareTo("√") == 0)) {
                 advFuncTextView.setText(advFunc);
+            }
+            else if(advFunc.compareTo("e") == 0){
+                output = new BigDecimal(Math.E).setScale(12, BigDecimal.ROUND_HALF_UP);
+                handleDecimalDisplayOutput();
+                setupNextCycle();
+            }
+            else if(advFunc.compareTo("∏") == 0){
+                output = new BigDecimal(Math.PI).setScale(12, BigDecimal.ROUND_HALF_UP);
+                handleDecimalDisplayOutput();
+                setupNextCycle();
+            }
+            else if(advFunc != null && advFunc.length() > 0){
+                output = new BigDecimal(advFunc);
+                handleDecimalDisplayOutput();
+                setupNextCycle();
+            }
             //Intent intentOrg = getIntent();
             //finish();
             //startActivity(intentOrg);
@@ -153,14 +172,13 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     public void onClick(View v) {
 
         currentExp = outputTextView.getText().toString();
-        currentButton = (String) ((Button) v).getText().toString();
+        currentButton = ((Button) v).getText().toString();
         //Toast.makeText(this, "Button: " + currentButton, Toast.LENGTH_LONG).show();
         if(currentButton.compareTo("C") != 0) {
             currentExp += currentButton;
         }
 
         if(( v.getId() == num1.getId()
-               || v.getId() == num1.getId()
                || v.getId() == num2.getId()
                || v.getId() == num3.getId()
                || v.getId() == num4.getId()
@@ -172,7 +190,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                || v.getId() == num0.getId()
                || v.getId() == numDot.getId())) {
 
-            if ((input1Entry == false)) {
+            if ((!input1Entry)) {
 
                 if(input1Str != null && input1Str.length()> 0)
                     input1Str += currentButton;
@@ -189,10 +207,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                 outputTextView.setText(currentExp);
 
             }
-            else if (operationEntry == false){
-
-            }
-            else if(operationEntry == true){
+            else if(operationEntry){
                 if(input2Str != null)
                     input2Str += currentButton;
                 else
@@ -215,7 +230,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
             } else if (input1Str != null && input1Str.length() != 0) {
                 input1Entry = true;
                 calculateAdvanced(true);
-                if (operationEntry == false)
+                if (!operationEntry)
                     operationEntry = true;
                 else {
                     currentExp = outputTextView.getText().toString();
@@ -246,7 +261,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                 }
                 currentExp = currentExp.substring(0, currentExp.length() - 1);
             }
-            else if (operationEntry == true) {
+            else if (operationEntry) {
                 operationEntry = false;
                 operationStr = "";
                 currentExp = currentExp.substring(0, currentExp.length() - 1);
@@ -291,12 +306,12 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
     public void resetAll(){
         input1Str = input2Str = operationStr = "";
-        input1SignStr = input2SignStr = outputSignStr = "+";
+        input1SignStr = outputSignStr = "+";
         input1Entry = false;
         input2Entry = false;
         operationEntry = false;
         //isContinue = false;
-        input1SignStr = input2SignStr = "+";
+        input1SignStr = "+";
         outputTextView.setText("");
         advFuncTextView.setText("");
     }
@@ -334,7 +349,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
             }
         }
         else if(operationStr.compareTo("/") == 0) {
-            output = input1.divide(input2);
+            output = input1.divide(input2, 8, RoundingMode.HALF_UP);
             if(input1SignStr.compareTo("-") == 0) {
                 outputSignStr = "-";
             }
@@ -380,7 +395,6 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         input1 = output;
         input1SignStr = outputSignStr;
         input2Str = "";
-        input2SignStr = "+";
         //Toast.makeText(this, "oo: " + input1, Toast.LENGTH_LONG).show();
         input1Entry = true;
         input2Entry = false;
@@ -439,15 +453,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
             input1 = BigDecimal.valueOf(temp);
             output = input1;
 
-            //Sign handling transfer output sign to input1.
-            if(output.signum() == -1){
-                BigDecimal negTemp = new BigDecimal("-1");
-                output = output.multiply(negTemp);
-                outputSignStr = "-";
-                //Toast.makeText(this, "The oo score is: " + output, Toast.LENGTH_LONG).show();
-            }
-
-            handleDecimalDisplayOutput();
+            signHandleDisplay();
 
             //Toast.makeText(this, "oo: " + output, Toast.LENGTH_LONG).show();
             outputStr = output.toString();
@@ -457,6 +463,18 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         }
     }
 
+    public void signHandleDisplay(){
+        //Sign handling transfer output sign to input1.
+        if(output.signum() == -1){
+            BigDecimal negTemp = new BigDecimal("-1");
+            output = output.multiply(negTemp);
+            outputSignStr = "-";
+            //Toast.makeText(this, "The oo score is: " + output, Toast.LENGTH_LONG).show();
+        }
+
+        handleDecimalDisplayOutput();
+    }
+
     public void advOutputDisplay(boolean isContinue){
         if(outputSignStr.compareTo("-") == 0){
             currentExp = outputSignStr + outputStr;
@@ -464,7 +482,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         else
             currentExp = outputStr;
 
-        if (isContinue == true){
+        if (isContinue){
             currentExp += currentButton;
         }
 
