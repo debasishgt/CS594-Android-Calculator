@@ -295,7 +295,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
                 //Toast.makeText(this, "oo: " + output, Toast.LENGTH_LONG).show();
                 setupNextCycle();
             }
-            else
+            else if(operationEntry != false)
                 calculate();
 
         }
